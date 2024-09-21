@@ -1,5 +1,6 @@
 from sqlalchemy_serializer import serialize_collection as sc
-from services.app import db, cache
+from services.app import db, cache, logger
+from models.authors import Author
 from models.books import Book
 from libs.response import Response
 from libs.dateutil import parse_date
@@ -9,37 +10,47 @@ NOT_FOUND_MESSAGE = "Book ID '{}' cannot be found"
 
 class BookService:
   def __get_book_from_request(self, req):
-    if not "author_id" in req.json:
-      return ValueError("Missing 'author_id'")
-    elif not "title" in req.json:
-      return ValueError("Missing 'title'")
-    elif not "description" in req.json:
-      return ValueError("Missing 'description'")
-    elif not "publish_date" in req.json:
-      return ValueError("Missing 'publish_date'")
+    try:
+      if not "author_id" in req.json:
+        return ValueError("Missing 'author_id'")
+      elif not "title" in req.json:
+        return ValueError("Missing 'title'")
+      elif not "description" in req.json:
+        return ValueError("Missing 'description'")
+      elif not "publish_date" in req.json:
+        return ValueError("Missing 'publish_date'")
 
-    title = req.json["title"].strip()
-    desc = req.json["description"].strip()
-    publ_date_str = req.json["publish_date"].strip()
-    publish_date = parse_date(publ_date_str, "%Y-%m-%d")
-    if not title:
-      return ValueError("Title cannot be empty")
-    elif len(title) > Book.max_title_length():
-      return ValueError("Title too long, max {} chars".format(Book.max_title_length()))
-    elif not description:
-      return ValueError("Description cannot be empty")
-    elif len(desc) > Book.max_description_length():
-      return ValueError("Description too long, max {} chars".format(Book.max_description_length()))
-    elif isinstance(publish_date, ValueError):
-      return ValueError("Invalid publish date '{}'".format(publ_date_str))
+      author_id = req.json["author_id"]
+      title = req.json["title"].strip()
+      description = req.json["description"].strip()
+      publ_date_str = req.json["publish_date"].strip()
+      publish_date = parse_date(publ_date_str[0:10], "%Y-%m-%d")
+      if not title:
+        return ValueError("Title cannot be empty")
+      elif len(title) > Book.max_title_length():
+        return ValueError("Title too long, max {} chars".format(Book.max_title_length()))
+      elif not description:
+        return ValueError("Description cannot be empty")
+      elif len(description) > Book.max_description_length():
+        return ValueError("Description too long, max {} chars".format(Book.max_description_length()))
+      elif isinstance(publish_date, ValueError):
+        return ValueError("Invalid publish date '{}'".format(publ_date_str))
 
-    return Book(author_id, title, description, publish_date)
+      author = Author.query.get(author_id)
+      if not author:
+        return ValueError("Author ID '{}' is not in database".format(author_id))
+
+      return Book(author_id, title, description, publish_date)
+    except Exception as e:
+      logger.fatal("Unexpected error in services.BookService.__get_book_from_request: {}".format(
+        str(e)))
+      return e
 
   def __book_not_found(self, id):
     return "Book ID '{}' cannot be found".format(id)
 
   def __cache_key(self, id):
-    return "book[{}]".format(id)
+    return "book[{}]".format(str(id) if id else "")
 
   def __get_book_from_cache(self, id):
     def onmiss(k):
@@ -64,7 +75,9 @@ class BookService:
   def add_new_book(self, req):
     book = self.__get_book_from_request(req)
     if isinstance(book, ValueError):
-      return Response.bad_request(book).resp()
+      return Response.bad_request(str(book)).resp()
+    elif isinstance(book, Exception):
+      return Response.internal_server_error("Unexpected error").resp()
 
     db.session.add(book)
     db.session.commit()
@@ -74,10 +87,12 @@ class BookService:
     book = self.__get_book_from_cache(id)
     if not book:
       return self.__book_not_found(id).resp()
+    elif isinstance(book, Exception):
+      return Response.internal_server_error("Unexpected error").resp()
 
     params = self.__get_book_from_request(req)
-    if not params:
-      return self.__book_not_found(id).resp()
+    if isinstance(book, ValueError):
+      return Response.bad_request(str(book)).resp()
 
     book.author_id = params.author_id
     book.title = params.title
@@ -92,6 +107,8 @@ class BookService:
     if not book:
       return self.__book_not_found(id).resp()
 
+    db.session.delete(book)
+    db.session.commit()
     cache.delete(self.__cache_key(id))
     return Response.success(None).resp()
 

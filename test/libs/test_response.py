@@ -15,7 +15,7 @@ class TestResponse(unittest.TestCase):
     ]
 
     for ex in examples:
-      self.assertTrue(isinstance(ex[0], Response))
+      self.assertIsInstance(ex[0], Response)
       self.assertEqual(ex[0].code, ex[1])
       self.assertEqual(ex[0].message, ex[2])
       self.assertEqual(ex[0].data, ex[3])

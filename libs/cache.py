@@ -52,5 +52,5 @@ class Cache:
       self.__cache[key] = CacheEntry(val)
 
   def delete(self, key):
-    if self.enabled:
+    if self.enabled and (key in self.__cache):
       del(self.__cache[key])

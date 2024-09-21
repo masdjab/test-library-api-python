@@ -21,7 +21,7 @@ def get_author(id):
   return authors.get_author(request, id)
 
 @app.route("/api/v1/authors/<int:id>", methods=["PUT"])
-def patch_author(id):
+def put_author(id):
   return authors.update_author(request, id)
 
 @app.route("/api/v1/authors/<int:id>", methods=["DELETE"])
@@ -39,7 +39,7 @@ def list_books():
 
 @app.route("/api/v1/books", methods=["POST"])
 def post_book():
-  return books.add_new_book(req)
+  return books.add_new_book(request)
 
 @app.route("/api/v1/books/<int:id>", methods=["GET"])
 def get_book(id):
