@@ -24,8 +24,12 @@ class BookService:
     publish_date = parse_date(publ_date_str, "%Y-%m-%d")
     if not title:
       return ValueError("Title cannot be empty")
+    elif len(title) > Book.max_title_length():
+      return ValueError("Title too long, max {} chars".format(Book.max_title_length()))
     elif not description:
       return ValueError("Description cannot be empty")
+    elif len(desc) > Book.max_description_length():
+      return ValueError("Description too long, max {} chars".format(Book.max_description_length()))
     elif isinstance(publish_date, ValueError):
       return ValueError("Invalid publish date '{}'".format(publ_date_str))
 

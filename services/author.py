@@ -20,8 +20,12 @@ class AuthorService:
     birth_date = parse_date(birth_date_str, "%Y-%m-%d")
     if not name:
       return ValueError("Name cannot be empty")
+    elif len(name) > Author.max_name_length():
+      return ValueError("Name too long, max {} chars".format(Author.max_name_length()))
     elif not bio:
       return ValueError("Bio cannot be empty")
+    elif len(bio) > Author.max_bio_length():
+      return ValueError("Bio too long, max {} chars".format(Author.max_bio_length()))
     elif not birth_date_str:
       return ValueError("Birth date cannot be empty")
     elif isinstance(birth_date, ValueError):
