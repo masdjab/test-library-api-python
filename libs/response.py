@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 
 class Response:
+    """HTTP response formatter"""
     def __init__(self, code, message, data):
         self.code = code
         self.message = message

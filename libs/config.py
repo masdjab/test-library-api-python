@@ -2,6 +2,7 @@ import os
 import yaml
 
 class Config:
+    """Load configuration either from ENV (higher priority) or from a YAML file"""
     def __init__(self, filename):
         self.__conf = {}
         with open(filename) as stream:

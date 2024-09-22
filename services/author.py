@@ -53,6 +53,7 @@ class AuthorService:
         return cache.get(self.__author_cache_key(id), onmiss)
 
     def list_authors(self, req):
+        """API handler for GET /api/v1/authors"""
         def onmiss(_):
             return Author.query.all()
 
@@ -60,6 +61,7 @@ class AuthorService:
         return Response.success(sc(authors)).resp()
 
     def get_author(self, req, id):
+        """API handler for GET /api/v1/authors/<id>"""
         author = self.__get_author_from_cache(id)
         if not author:
             return self.__author_not_found(id).resp()
@@ -67,6 +69,7 @@ class AuthorService:
         return Response.success(author.to_dict()).resp()
 
     def add_new_author(self, req):
+        """API handler for POST /api/v1/authors"""
         author = self.__get_author_from_request(req)
         if isinstance(author, ValueError):
             return Response.bad_request(str(author)).resp()
@@ -78,6 +81,7 @@ class AuthorService:
         return Response.success(author.to_dict()).resp()
 
     def update_author(self, req, id):
+        """API handler for PUT /api/v1/authors/<id>"""
         author = self.__get_author_from_cache(id)
         if not author:
             return self.__author_not_found(id).resp()
@@ -95,6 +99,7 @@ class AuthorService:
         return Response.success(author.to_dict()).resp()
 
     def delete_author(self, req, id):
+        """API handler for DELETE /api/v1/authors/<id>"""
         author = self.__get_author_from_cache(id)
         if not author:
             return self.__author_not_found(id).resp()
@@ -105,6 +110,7 @@ class AuthorService:
         return Response.success(None).resp()
 
     def list_book_from_author(self, req, id):
+        """API handler for GET /api/v1/authors/<id>/books"""
         author = self.__get_author_from_cache(id)
         if not author:
             return self.__author_not_found(id).resp()

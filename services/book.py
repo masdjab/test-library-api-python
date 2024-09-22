@@ -60,6 +60,7 @@ class BookService:
         return cache.get(self.__cache_key(book_id), onmiss)
 
     def list_books(self, req):
+        """API handler for GET /api/v1/books"""
         def onmiss(_):
             return Book.query.all()
 
@@ -67,6 +68,7 @@ class BookService:
         return Response.success(sc(books)).resp()
 
     def get_book(self, req, book_id):
+        """API handler for GET /api/v1/books/<id>"""
         book = self.__get_book_from_cache(book_id)
         if not book:
             return self.__book_not_found(book_id).resp()
@@ -74,6 +76,7 @@ class BookService:
         return Response.success(book.to_dict()).resp()
 
     def add_new_book(self, req):
+        """API handler for POST /api/v1/books"""
         book = self.__get_book_from_request(req)
         if isinstance(book, ValueError):
             return Response.bad_request(str(book)).resp()
@@ -85,6 +88,7 @@ class BookService:
         return Response.success(book.to_dict()).resp()
 
     def update_book(self, req, book_id):
+        """API handler for PUT /api/v1/books/<id>"""
         book = self.__get_book_from_cache(book_id)
         if not book:
             return self.__book_not_found(book_id).resp()
@@ -104,6 +108,7 @@ class BookService:
         return Response.success(book.to_dict()).resp()
 
     def delete_book(self, req, book_id):
+        """API handler for DELETE /api/v1/books/<id>"""
         book = self.__get_book_from_cache(book_id)
         if not book:
             return self.__book_not_found(book_id).resp()
