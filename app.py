@@ -21,7 +21,7 @@ def get_author(id):
   return authors.get_author(request, id)
 
 @app.route("/api/v1/authors/<int:id>", methods=["PUT"])
-def patch_author(id):
+def put_author(id):
   return authors.update_author(request, id)
 
 @app.route("/api/v1/authors/<int:id>", methods=["DELETE"])
@@ -39,7 +39,7 @@ def list_books():
 
 @app.route("/api/v1/books", methods=["POST"])
 def post_book():
-  return books.add_new_book(req)
+  return books.add_new_book(request)
 
 @app.route("/api/v1/books/<int:id>", methods=["GET"])
 def get_book(id):
@@ -50,7 +50,7 @@ def patch_book(id):
   return books.update_book(request, id)
 
 @app.route("/api/v1/books/<int:id>", methods=["DELETE"])
-def delete_book():
+def delete_book(id):
   return books.delete_book(request, id)
 
 # miscellaneous routes
@@ -60,6 +60,14 @@ def ping():
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
+  if ((request.method == "POST") or (request.method == "PUT")):
+    if (e.code == 415) and (request.content_type != "application/json"):
+      return Response.error(e.code, "Content type must be 'application/json'").resp()
+    if (e.code == 400) and (request.content_type == "application/json"):
+      return Response.error(e.code, "Invalid JSON body").resp()
+    else:
+      return Response.error(e.code, "Unsupported media type").resp()
+
   return Response.error(e.code, e.description).resp()
 
 

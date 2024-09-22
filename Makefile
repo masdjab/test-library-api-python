@@ -3,7 +3,7 @@
 copy-config:
 	cp config.yml.sample config.yml
 
-dev:
+start:
 	python3 app.py
 
 test:
