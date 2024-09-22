@@ -1,0 +1,9 @@
+[MASTER]
+disable=
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    R0904,  # too many public methods
+    R0911,  # too many return statements
+    W0622,  # redefining built-in (id)
+    W0718,  # broad exception caught
