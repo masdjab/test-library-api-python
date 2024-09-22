@@ -21,8 +21,8 @@ A simple CRUD API written using Python + Flask + SQLAlchemy<br>
 ## Setup ##
 - Create virtual environment<br>
   `python3 -m virtualenv venv <envname>`<br>
-- Change directory to virtual environment created above<br>
-  `cd <envname>`<br>
+- Activate virtual environment<br>
+  `source <envname>/bin/activate`<br>
 - Install dependency<br>
   `pip install -r requirements`<br>
 - Copy application configuration from template<br>
