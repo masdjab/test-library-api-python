@@ -73,7 +73,7 @@ class AuthorService:
     if isinstance(author, ValueError):
       return Response.bad_request(str(author)).resp()
     elif isinstance(author, Exception):
-      return Response.internal_server_error("Unexpected error").resp()
+      raise author
 
     db.session.add(author)
     db.session.commit()
@@ -88,7 +88,7 @@ class AuthorService:
     if isinstance(params, ValueError):
       return Response.bad_request(str(params)).resp()
     elif isinstance(params, Exception):
-      return Response.internal_server_error("Unexpected error").resp()
+      raise params
 
     author.name = params.name
     author.bio = params.bio

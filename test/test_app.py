@@ -173,38 +173,37 @@ class TestApp(TestCase):
     mock_query.all.return_value = self.__saved_authors()
     cache.delete("author[]")
     resp = self.client.get("/api/v1/authors")
-    resp_data = resp.get_data(as_text=True)
+    body = json.loads(resp.get_data(as_text=True))
     mock_query.all.assert_called_once()
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(json.loads(resp_data)["data"], expected_data)
+    self.assertEqual(body["data"], expected_data)
 
   @mock.patch("models.authors.Author.query")
   def test_get_author_success(self, mock_query):
-    expected_data = self.__saved_authors()[0].to_dict()
-    mock_query.get.return_value = self.__saved_authors()[0]
+    expected_data = self.author_obj_sample.to_dict()
+    mock_query.get.return_value = self.author_obj_sample
     cache.delete("author[1]")
     resp = self.client.get("/api/v1/authors/1")
-    resp_data = resp.get_data(as_text=True)
+    body = json.loads(resp.get_data(as_text=True))
     mock_query.get.assert_called_with(1)
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(json.loads(resp_data)["data"], expected_data)
+    self.assertEqual(body["data"], expected_data)
 
   @mock.patch("models.authors.Author.query")
   def test_get_author_not_found(self, mock_query):
     mock_query.get.return_value = None
     cache.delete("author[1]")
     resp = self.client.get("/api/v1/authors/1")
-    resp_data = resp.get_data(as_text=True)
+    body = json.loads(resp.get_data(as_text=True))
     mock_query.get.assert_called_with(1)
     self.assertEqual(resp.status_code, 404)
-    self.assertEqual(json.loads(resp_data)["data"], None)
+    self.assertEqual(body["data"], None)
 
   @mock.patch("services.author.db")
   def test_post_author_success(self, mock_db):
     resp = self.client.post("/api/v1/authors", 
       data=json.dumps(self.author_dict_sample), 
       content_type="application/json")
-    resp_data = resp.get_data(as_text=True)
     mock_db.session.add.assert_called_once()
     mock_db.session.commit.assert_called_once()
     self.assertEqual(resp.status_code, 200)
@@ -215,20 +214,20 @@ class TestApp(TestCase):
       resp = self.client.post("/api/v1/authors", 
         data=json.dumps(p["data"]), 
         content_type="application/json")
-      resp_data = resp.get_data(as_text=True)
+      body = json.loads(resp.get_data(as_text=True))
       mock_db.session.add.assert_not_called()
       mock_db.session.commit.assert_not_called()
       self.assertEqual(resp.status_code, 400, p["desc"])
-      self.assertEqual(json.loads(resp_data)["meta"]["message"], p["message"], p["desc"])
+      self.assertEqual(body["meta"]["message"], p["message"], p["desc"])
       
   @mock.patch("models.authors.Author.query")
   @mock.patch("services.author.db")
   def test_put_author_success(self, mock_db, mock_query):
     mock_query.get.return_value = self.author_obj_sample
+    cache.delete("author[1]")
     resp = self.client.put("/api/v1/authors/1", 
       data=json.dumps(self.author_dict_sample), 
       content_type="application/json")
-    resp_data = resp.get_data(as_text=True)
     mock_db.session.commit.assert_called_once()
     self.assertEqual(resp.status_code, 200)
 
@@ -236,16 +235,17 @@ class TestApp(TestCase):
   @mock.patch("models.authors.Author.query")
   def test_put_author_failed(self, mock_query, mock_db):
     mock_query.get.return_value = self.author_obj_sample
+    cache.delete("author[1]")
 
     for p in self.__invalid_author_params():
       cache.delete("author[1]")
       resp = self.client.put("/api/v1/authors/1", 
         data=json.dumps(p["data"]), 
         content_type="application/json")
-      resp_data = resp.get_data(as_text=True)
+      body = json.loads(resp.get_data(as_text=True))
       mock_db.session.commit.assert_not_called()
       self.assertEqual(resp.status_code, 400, p["desc"])
-      self.assertEqual(json.loads(resp_data)["meta"]["message"], p["message"], p["desc"])
+      self.assertEqual(body["meta"]["message"], p["message"], p["desc"])
 
   @mock.patch("services.author.db")
   @mock.patch("models.authors.Author.query")
@@ -287,9 +287,30 @@ class TestApp(TestCase):
     mock_query.all.return_value = self.__saved_books()
     cache.delete("book[]")
     resp = self.client.get("/api/v1/books")
-    resp_data = resp.get_data(as_text=True)
+    body = json.loads(resp.get_data(as_text=True))
     self.assertEqual(resp.status_code, 200)
-    self.assertEqual(json.loads(resp_data)["data"], expected_data)
+    self.assertEqual(body["data"], expected_data)
+
+  @mock.patch("models.books.Book.query")
+  def test_get_book_success(self, mock_query):
+    expected_data = self.book_obj_sample.to_dict()
+    mock_query.get.return_value = self.book_obj_sample
+    cache.delete("book[1]")
+    resp = self.client.get("/api/v1/books/1")
+    body = json.loads(resp.get_data(as_text=True))
+    mock_query.get.assert_called_with(1)
+    self.assertEqual(resp.status_code, 200)
+    self.assertEqual(body["data"], expected_data)
+
+  @mock.patch("models.books.Book.query")
+  def test_get_book_not_found(self, mock_query):
+    mock_query.get.return_value = None
+    cache.delete("book[1]")
+    resp = self.client.get("/api/v1/books/1")
+    body = json.loads(resp.get_data(as_text=True))
+    mock_query.get.assert_called_with(1)
+    self.assertEqual(resp.status_code, 404)
+    self.assertEqual(body["data"], None)
 
   @mock.patch("services.book.db")
   @mock.patch("models.authors.Author.query")
@@ -308,11 +329,11 @@ class TestApp(TestCase):
       resp = self.client.post("/api/v1/books", 
         data=json.dumps(p["data"]), 
         content_type="application/json")
-      resp_data = resp.get_data(as_text=True)
+      body = json.loads(resp.get_data(as_text=True))
       mock_db.session.add.assert_not_called()
       mock_db.session.commit.assert_not_called()
       self.assertEqual(resp.status_code, 400, p["desc"])
-      self.assertEqual(json.loads(resp_data)["meta"]["message"], p["message"], p["desc"])
+      self.assertEqual(body["meta"]["message"], p["message"], p["desc"])
 
   @mock.patch("services.book.db")
   @mock.patch("models.authors.Author.query")
@@ -321,31 +342,98 @@ class TestApp(TestCase):
     resp = self.client.post("/api/v1/books", 
       data=json.dumps(self.book_dict_sample), 
       content_type="application/json")
-    resp_data = resp.get_data(as_text=True)
+    body = json.loads(resp.get_data(as_text=True))
     mock_db.session.add.assert_not_called()
     mock_db.session.commit.assert_not_called()
     self.assertEqual(resp.status_code, 400)
-    self.assertEqual(json.loads(resp_data)["meta"]["message"], "Author ID '1' is not in database")
+    self.assertEqual(body["meta"]["message"], "Author ID '1' is not in database")
 
-  def test_get_book(self):
-    # todo: implement unit test
-    pass
+  @mock.patch("services.book.db")
+  @mock.patch("models.authors.Author.query")
+  @mock.patch("models.books.Book.query")
+  def test_put_book_success(self, mock_book, mock_author, mock_db):
+    mock_book.get.return_value = self.book_obj_sample
+    mock_author.get.return_value = self.author_obj_sample
+    cache.delete("book[1]")
+    resp = self.client.put("/api/v1/books/1", 
+      data=json.dumps(self.book_dict_sample), 
+      content_type="application/json")
+    mock_db.session.commit.assert_called_once()
+    self.assertEqual(resp.status_code, 200)
 
-  def test_put_book_success(self):
-    # todo: implement unit test
-    pass
+  @mock.patch("services.book.db")
+  @mock.patch("models.authors.Author.query")
+  def test_put_book_validation_failed(self, mock_author, mock_db):
+    mock_author.get.return_value = self.author_obj_sample
+    for p in self.__invalid_book_params():
+      cache.delete("book[1]")
+      resp = self.client.put("/api/v1/books/1", 
+        data=json.dumps(p["data"]), 
+        content_type="application/json")
+      body = json.loads(resp.get_data(as_text=True))
+      mock_db.session.add.assert_not_called()
+      mock_db.session.commit.assert_not_called()
+      self.assertEqual(resp.status_code, 400, p["desc"])
+      self.assertEqual(body["meta"]["message"], p["message"], p["desc"])
 
-  def test_put_book_validation_failed(self):
-    # todo: implement unit test
-    pass
+  @mock.patch("services.book.db")
+  @mock.patch("models.authors.Author.query")
+  @mock.patch("models.books.Book.query")
+  def test_put_book_invalid_author(self, mock_book, mock_author, mock_db):
+    mock_book.get.return_value = self.book_obj_sample
+    mock_author.get.return_value = None
+    cache.delete("book[1]")
+    resp = self.client.put("/api/v1/books/1", 
+      data=json.dumps(self.book_dict_sample), 
+      content_type="application/json")
+    body = json.loads(resp.get_data(as_text=True))
+    mock_db.session.commit.assert_not_called()
+    self.assertEqual(resp.status_code, 400)
+    self.assertEqual(body["meta"]["message"], "Author ID '1' is not in database")
 
-  def test_put_book_invalid_author(self):
-    # todo: implement unit test
-    pass
+  @mock.patch("services.book.db")
+  @mock.patch("models.books.Book.query")
+  def test_delete_book_success(self, mock_query, mock_db):
+    mock_query.get.return_value = self.book_obj_sample
+    cache.delete("book[1]")
+    resp = self.client.delete("/api/v1/books/1")
+    mock_db.session.delete.assert_called_once()
+    mock_db.session.commit.assert_called_once()
+    self.assertEqual(resp.status_code, 200)
 
-  def test_delete_book(self):
-    # todo: implement unit test
-    pass
+  @mock.patch("services.book.db")
+  @mock.patch("models.books.Book.query")
+  def test_delete_book_failed(self, mock_query, mock_db):
+    mock_query.get.return_value = None
+    cache.delete("book[1]")
+    resp = self.client.delete("/api/v1/books/1")
+    body = json.loads(resp.get_data(as_text=True))
+    mock_db.session.delete.assert_not_called()
+    mock_db.session.commit.assert_not_called()
+    self.assertEqual(resp.status_code, 404)
+    self.assertEqual(body["meta"]["message"], "Book ID '1' cannot be found")
+
+  def test_non_json_body(self):
+    resp = self.client.post("/api/v1/authors")
+    body = json.loads(resp.get_data(as_text=True))
+    self.assertEqual(resp.status_code, 415)
+    self.assertEqual(body["meta"]["message"], "Content type must be 'application/json'")
+
+    resp = self.client.put("/api/v1/authors/1")
+    body = json.loads(resp.get_data(as_text=True))
+    self.assertEqual(resp.status_code, 415)
+    self.assertEqual(body["meta"]["message"], "Content type must be 'application/json'")
+
+  def test_invalid_json_body(self):
+    resp = self.client.post("/api/v1/authors", data="{", content_type="application/json")
+    body = json.loads(resp.get_data(as_text=True))
+    self.assertEqual(resp.status_code, 400)
+    self.assertEqual(body["meta"]["message"], "Invalid JSON body")
+
+    resp = self.client.put("/api/v1/authors/1", data="{", content_type="application/json")
+    body = json.loads(resp.get_data(as_text=True))
+    self.assertEqual(resp.status_code, 400)
+    self.assertEqual(body["meta"]["message"], "Invalid JSON body")
 
   def test_ping(self):
     resp = self.client.get("/ping")

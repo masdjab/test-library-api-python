@@ -47,7 +47,7 @@ class BookService:
       return e
 
   def __book_not_found(self, id):
-    return "Book ID '{}' cannot be found".format(id)
+    return Response.not_found("Book ID '{}' cannot be found".format(id))
 
   def __cache_key(self, id):
     return "book[{}]".format(str(id) if id else "")
@@ -77,7 +77,7 @@ class BookService:
     if isinstance(book, ValueError):
       return Response.bad_request(str(book)).resp()
     elif isinstance(book, Exception):
-      return Response.internal_server_error("Unexpected error").resp()
+      raise book
 
     db.session.add(book)
     db.session.commit()
@@ -87,12 +87,12 @@ class BookService:
     book = self.__get_book_from_cache(id)
     if not book:
       return self.__book_not_found(id).resp()
-    elif isinstance(book, Exception):
-      return Response.internal_server_error("Unexpected error").resp()
 
     params = self.__get_book_from_request(req)
-    if isinstance(book, ValueError):
-      return Response.bad_request(str(book)).resp()
+    if isinstance(params, ValueError):
+      return Response.bad_request(str(params)).resp()
+    elif isinstance(params, Exception):
+      raise params
 
     book.author_id = params.author_id
     book.title = params.title
