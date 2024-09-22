@@ -37,4 +37,7 @@ A simple CRUD API written using Python + Flask + SQLAlchemy<br>
 `make start`<br>
 
 ## Running Unit Test ##
-`make test`<br>
+- without coverage report<br>
+  `make test`<br>
+- with coverage report<br>
+  `make test-cover`<br>

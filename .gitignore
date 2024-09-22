@@ -1,5 +1,6 @@
 .env
 .vscode
+.coverage
 __pycache__
 config.yml
 notes/
