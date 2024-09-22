@@ -2,6 +2,7 @@
 
 import datetime
 import json
+import coverage
 from unittest import TestCase, mock
 from services.app import cache
 from app import app
@@ -479,3 +480,20 @@ class TestApp(TestCase):
         resp = self.client.get("/ping")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.get_data(as_text=True), "PONG")
+
+
+
+if __name__ == '__main__':
+    cov = coverage.Coverage()
+    cov.start()
+
+    try:
+        unittest.main()
+    except:
+        pass
+
+    cov.stop()
+    cov.save()
+
+    cov.html_report()
+    print("Done.")
