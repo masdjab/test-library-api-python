@@ -14,7 +14,7 @@ class Author(db.Model, SerializerMixin):
     name = db.Column(db.String(MAX_NAME_LENGTH))
     bio = db.Column(db.String(MAX_BIO_LENGTH))
     birth_date = db.Column(db.DateTime())
-    books = db.relationship('models.books.Book', cascade="all,delete", backref='author')
+    books = db.relationship('models.books.Book', lazy='joined', cascade="all,delete", backref='author')
 
     def __init__(self, name, bio, birth_date):
         self.name = name
