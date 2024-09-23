@@ -28,6 +28,8 @@ A simple CRUD API written using Python + Flask + SQLAlchemy<br>
 - Copy application configuration from template<br>
   `make copy config`<br>
 - Edit `config.yml` and adjust the configuration if necessary<br>
+- Create the database<br>
+  MySQL: `CREATE DATABASE <databasename>`<br>
 - Initialize database<br>
   `flask db init`<br>
   `flask db migrate`<br>
